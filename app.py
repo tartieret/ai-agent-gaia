@@ -1,80 +1,16 @@
 import os
 import gradio as gr
 import requests
-import inspect
 import pandas as pd
 
-# (Keep Constants as is)
-# --- Constants ---
-DEFAULT_API_URL = "https://agents-course-unit4-scoring.hf.space"
+from agent import BasicAgent
+from hg_api import get_questions, SUBMIT_URL, build_answers_payload
 
 
-# --- Basic Agent Definition ---
-# ----- THIS IS WERE YOU CAN BUILD WHAT YOU WANT ------
-class BasicAgent:
-    def __init__(self):
-        print("BasicAgent initialized.")
-
-    def __call__(self, question: str) -> str:
-        print(f"Agent received question (first 50 chars): {question[:50]}...")
-        fixed_answer = "This is a default answer."
-        print(f"Agent returning fixed answer: {fixed_answer}")
-        return fixed_answer
-
-
-def run_and_submit_all(profile: gr.OAuthProfile | None):
-    """
-    Fetches all questions, runs the BasicAgent on them, submits all answers,
-    and displays the results.
-    """
-    # --- Determine HF Space Runtime URL and Repo URL ---
-    space_id = os.getenv("SPACE_ID")  # Get the SPACE_ID for sending link to the code
-
-    if profile:
-        username = f"{profile.username}"
-        print(f"User logged in: {username}")
-    else:
-        print("User not logged in.")
-        return "Please Login to Hugging Face with the button.", None
-
-    api_url = DEFAULT_API_URL
-    questions_url = f"{api_url}/questions"
-    submit_url = f"{api_url}/submit"
-
-    # 1. Instantiate Agent ( modify this part to create your agent)
-    try:
-        agent = BasicAgent()
-    except Exception as e:
-        print(f"Error instantiating agent: {e}")
-        return f"Error initializing agent: {e}", None
-    # In the case of an app running as a hugging Face space, this link points toward your codebase ( usefull for others so please keep it public)
-    agent_code = f"https://huggingface.co/spaces/{space_id}/tree/main"
-    print(agent_code)
-
-    # 2. Fetch Questions
-    print(f"Fetching questions from: {questions_url}")
-    try:
-        response = requests.get(questions_url, timeout=15)
-        response.raise_for_status()
-        questions_data = response.json()
-        if not questions_data:
-            print("Fetched questions list is empty.")
-            return "Fetched questions list is empty or invalid format.", None
-        print(f"Fetched {len(questions_data)} questions.")
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching questions: {e}")
-        return f"Error fetching questions: {e}", None
-    except requests.exceptions.JSONDecodeError as e:
-        print(f"Error decoding JSON response from questions endpoint: {e}")
-        print(f"Response text: {response.text[:500]}")
-        return f"Error decoding server response for questions: {e}", None
-    except Exception as e:
-        print(f"An unexpected error occurred fetching questions: {e}")
-        return f"An unexpected error occurred fetching questions: {e}", None
-
-    # 3. Run your Agent
+def evaluate_agent(agent, questions_data) -> list[dict]:
+    """Runs the agent on the given questions and returns the results."""
     results_log = []
-    answers_payload = []
+
     print(f"Running agent on {len(questions_data)} questions...")
     for item in questions_data:
         task_id = item.get("task_id")
@@ -84,9 +20,6 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
             continue
         try:
             submitted_answer = agent(question_text)
-            answers_payload.append(
-                {"task_id": task_id, "submitted_answer": submitted_answer}
-            )
             results_log.append(
                 {
                     "Task ID": task_id,
@@ -104,11 +37,49 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
                 }
             )
 
-    if not answers_payload:
+    return results_log
+
+
+def run_and_submit_all(profile: gr.OAuthProfile | None):
+    """
+    Fetches all questions, runs the BasicAgent on them, submits all answers,
+    and displays the results.
+    """
+    # --- Determine HF Space Runtime URL and Repo URL ---
+    space_id = os.getenv("SPACE_ID")  # Get the SPACE_ID for sending link to the code
+
+    if profile:
+        username = f"{profile.username}"
+        print(f"User logged in: {username}")
+    else:
+        print("User not logged in.")
+        return "Please Login to Hugging Face with the button.", None
+
+    # 1. Instantiate Agent ( modify this part to create your agent)
+    try:
+        agent = BasicAgent()
+    except Exception as e:
+        print(f"Error instantiating agent: {e}")
+        return f"Error initializing agent: {e}", None
+    # In the case of an app running as a hugging Face space, this link points toward your codebase ( usefull for others so please keep it public)
+    agent_code = f"https://huggingface.co/spaces/{space_id}/tree/main"
+    print(agent_code)
+
+    # 2. Fetch Questions
+    questions_data = get_questions()
+    if not questions_data:
+        print("Fetched questions list is empty.")
+        return "Fetched questions list is empty or invalid format.", None
+    print(f"Fetched {len(questions_data)} questions.")
+
+    # 3. Run your Agent
+    results_log = evaluate_agent(agent, questions_data)
+    if not results_log:
         print("Agent did not produce any answers to submit.")
         return "Agent did not produce any answers to submit.", pd.DataFrame(results_log)
 
     # 4. Prepare Submission
+    answers_payload = build_answers_payload(results_log)
     submission_data = {
         "username": username.strip(),
         "agent_code": agent_code,
@@ -118,9 +89,9 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
     print(status_update)
 
     # 5. Submit
-    print(f"Submitting {len(answers_payload)} answers to: {submit_url}")
+    print(f"Submitting {len(answers_payload)} answers to: {SUBMIT_URL}")
     try:
-        response = requests.post(submit_url, json=submission_data, timeout=60)
+        response = requests.post(SUBMIT_URL, json=submission_data, timeout=60)
         response.raise_for_status()
         result_data = response.json()
         final_status = (
