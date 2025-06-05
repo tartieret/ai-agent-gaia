@@ -3,8 +3,8 @@ import gradio as gr
 import requests
 import pandas as pd
 
-from agent import BasicAgent
-from hg_api import get_questions, SUBMIT_URL, build_answers_payload
+from agent import Agent
+from hg_api import download_questions, SUBMIT_URL, build_answers_payload
 
 
 def evaluate_agent(agent, questions_data) -> list[dict]:
@@ -42,7 +42,7 @@ def evaluate_agent(agent, questions_data) -> list[dict]:
 
 def run_and_submit_all(profile: gr.OAuthProfile | None):
     """
-    Fetches all questions, runs the BasicAgent on them, submits all answers,
+    Fetches all questions, runs the Agent on them, submits all answers,
     and displays the results.
     """
     # --- Determine HF Space Runtime URL and Repo URL ---
@@ -57,7 +57,7 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
 
     # 1. Instantiate Agent ( modify this part to create your agent)
     try:
-        agent = BasicAgent()
+        agent = Agent()
     except Exception as e:
         print(f"Error instantiating agent: {e}")
         return f"Error initializing agent: {e}", None
@@ -66,7 +66,7 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
     print(agent_code)
 
     # 2. Fetch Questions
-    questions_data = get_questions()
+    questions_data = download_questions()
     if not questions_data:
         print("Fetched questions list is empty.")
         return "Fetched questions list is empty or invalid format.", None
