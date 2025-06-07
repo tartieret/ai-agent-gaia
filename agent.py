@@ -12,7 +12,13 @@ from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 from langchain_core.prompts import PromptTemplate
 from langchain.tools.render import render_text_description_and_args
-from tools import calculator, web_search_tool, run_python, browser_tools
+from tools import (
+    calculator,
+    web_search_tool,
+    run_python,
+    browser_tools,
+    semantic_tools,
+)
 from debug import PromptLoggingHandler
 from utils import format_messages
 
@@ -79,7 +85,14 @@ class Agent:
             api_key=os.getenv("OPENAI_KEY"),
         )
 
-        tools = [calculator, run_python, web_search_tool, *browser_tools]
+        tools = [
+            calculator,
+            run_python,
+            web_search_tool,
+            *browser_tools,
+            # get_text_from_url,
+            *semantic_tools,
+        ]
 
         # react_prompt_template = PromptTemplate.from_template(BASE_PROMPT)
         # react_prompt = react_prompt_template.partial(
