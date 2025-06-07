@@ -1,2 +1,11 @@
 gradio[oauth]
 requests
+
+langchain
+langchain-huggingface
+langchain-openai
+langchain-community
+langgraph
+
+# tools
+duckduckgo-search
