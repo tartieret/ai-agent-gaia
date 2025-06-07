@@ -9,3 +9,8 @@ langgraph
 
 # tools
 duckduckgo-search
+langchain-tavily	
+langchain-experimental
+
+playwright
+lxml

@@ -1,26 +1,24 @@
 import os
-
+import asyncio
 from typing import Annotated, TypedDict
 
 from langgraph.graph.message import add_messages
-from langchain_core.messages import (
-    AnyMessage,
-    HumanMessage,
-    AIMessage,
-    SystemMessage,
-    ToolMessage,
-)
+from langchain_core.messages import AnyMessage
+from langchain_core.runnables import RunnableConfig
+from langgraph.prebuilt.chat_agent_executor import AgentState
 from langchain_openai import ChatOpenAI
-from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
+
+# from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 from langgraph.prebuilt import create_react_agent
 from langchain_core.prompts import PromptTemplate
 from langchain.tools.render import render_text_description_and_args
-from tools import calculator, web_search_tool, get_weather
+from tools import calculator, web_search_tool, run_python, browser_tools
 from debug import PromptLoggingHandler
+from utils import format_messages
 
 DEBUG = True
 
-PROMPT = """
+BASE_PROMPT = """
 You are a general AI assistant and have access to the following tools:  
 {tools}
 
@@ -28,11 +26,11 @@ You are a general AI assistant and have access to the following tools:
 │ When you receive a question, think step‑by‑step and use tools            │
 │ whenever helpful. Always follow *exactly* this scratch‑pad format:       │
 │                                                                          │
-│ Thought: ...                                                             │
+│ Thought: ...   
 │ Action: <tool_name>[<input>]                                             │
 │ Observation: <tool_output>                                               │
 │                                                                          │
-│ … (repeat Thought/Action/Observation as needed) …                        │
+│ … (repeat Thought/Action/Observation as needed) …                         │
 │                                                                          │
 │ Thought: I now know the answer.                                          │
 │ FINAL ANSWER: <single answer here>                                       │
@@ -47,7 +45,7 @@ After the line that starts with **“FINAL ANSWER:”**, output nothing else.
 Never prepend or append explanations to the final answer line.
 
 START NOW!
-
+----------------
 {messages}
 """
 
@@ -81,65 +79,49 @@ class Agent:
             api_key=os.getenv("OPENAI_KEY"),
         )
 
-        tools = [calculator, get_weather]  # , web_search_tool]
+        tools = [calculator, run_python, web_search_tool, *browser_tools]
 
-        react_prompt_template = PromptTemplate.from_template(PROMPT)
+        # react_prompt_template = PromptTemplate.from_template(BASE_PROMPT)
+        # react_prompt = react_prompt_template.partial(
+        #     tools=render_text_description_and_args(tools),
+        # )
+
+        def prompt(state: AgentState, config: RunnableConfig) -> list[AnyMessage]:
+            # Build the scratchpad from the messages
+            scratchpad = format_messages(state["messages"])
+            system_prompt = BASE_PROMPT.format(
+                tools=render_text_description_and_args(tools),
+                messages=scratchpad,
+            )
+            return system_prompt
+
+        react_prompt_template = PromptTemplate.from_template(BASE_PROMPT)
         react_prompt = react_prompt_template.partial(
-            tools=render_text_description_and_args(tools),  # pretty description block
+            tools=render_text_description_and_args(tools),
         )
 
         self.agent = create_react_agent(
             model=chat_model,
             tools=tools,
-            # prompt=react_prompt,
+            prompt=prompt,  # react_prompt,
             debug=self.debug,
         )
 
     def __call__(self, question: str, filename: str | None = None) -> str:
         invoke_kwargs = {"messages": [{"role": "user", "content": question}]}
-        response = self.agent.invoke(invoke_kwargs)
+
+        # Get the current event loop or create a new one
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+        # Run the async function and get the response
+        response = loop.run_until_complete(self.agent.ainvoke(invoke_kwargs))
 
         if self.debug:
             print("\n=== ALL MESSAGES ===")
-            for msg in response["messages"]:
-                self.log_message(msg)
+            print(format_messages(response["messages"]))
             print("=====================\n")
         return response["messages"][-1].content
-
-    def log_message(self, msg: AnyMessage):
-        """
-        Log a message with proper formatting.
-
-        Args:
-            msg (AnyMessage): The message to log.
-        """
-
-        # Format multiline content with proper indentation
-        def format_content(content):
-            if "\n" in content:
-                # If content is multiline, add a newline and indent each line with a tab
-                formatted = "\n"
-                for line in content.split("\n"):
-                    formatted += f"\t{line}\n"
-                return formatted
-            return content
-
-        if isinstance(msg, HumanMessage):
-            print(f"Human: {format_content(msg.content)}")
-        elif isinstance(msg, AIMessage):
-            if msg.tool_calls:
-                for tool_call in msg.tool_calls:
-                    tool_name = tool_call.get("name", "")
-                    kwargs = tool_call.get("args", {})
-                    pretty_kwargs = ",".join([f"{k}={v}" for k, v in kwargs.items()])
-                    print(f"Assistant: <{tool_name}>[{pretty_kwargs}]")
-            else:
-                print(f"Assistant: {format_content(msg.content)}")
-        elif isinstance(msg, SystemMessage):
-            print(f"System: {format_content(msg.content)}")
-        elif isinstance(msg, ToolMessage):
-            # output the tool name and arguments
-            print(f"Tool: {msg.content}")
-        else:
-            print(f"Other message type: {type(msg).__name__}")
-            print(f"Content: {format_content(msg.content)}")

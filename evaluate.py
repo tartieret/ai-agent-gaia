@@ -51,18 +51,24 @@ if __name__ == "__main__":
 
     agent = Agent(debug=True)
 
-    # for question in select_questions_to_run(args.task_id):
-    #     print("\n" + "-" * 30 + f"Question {question['task_id']}" + "-" * 30 + "\n")
-    #     content = question["question"]
-    #     print("Content: " + content)
-    #     if question["file_name"]:
-    #         print(f"File: {question['file_name']}\n")
+    for question in select_questions_to_run(args.task_id):
+        print("\n" + "-" * 30 + f"Question {question['task_id']}" + "-" * 30 + "\n")
+        content = question["question"]
+        print("Content: " + content)
+        if question["file_name"]:
+            print(f"File: {question['file_name']}\n")
 
-    #     response = agent(content)
-    #     print("Response: " + response)
+        response = agent(content)
+        print("Response: " + response)
 
-    response = agent(
-        "Find if 11111*11111 is odd or even. If it's odd, output 2348592043*0.0934. Otherwise output zero."
-    )
-    # response = agent("What's the current weather in Vancouver?")
-    print("Response: " + response)
+    # response = agent(
+    #     "Find if 11111*11111 is odd or even. If it's odd, output 2348592043*0.0934. Otherwise output zero."
+    # )
+    # response = agent(
+    #     "What's the current weather in Vancouver? If it's not warm, compute 0.349*2348592043*0.0934. Otherwise output zero."
+    # )
+
+    # response = agent(
+    #     "Write a program in python that generate 100 random numbers between 1 and 1000 and insert them in a pandas dataframe. Then compute the sum of these, and output it as your final answer"
+    # )
+    print("\nResponse: " + response)
