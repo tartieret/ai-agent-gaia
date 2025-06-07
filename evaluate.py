@@ -1,3 +1,13 @@
+"""Run the agent on specific questions.
+
+To use it:
+
+python evaluate.py <task_id>
+
+Where <task_id> is the ID of the task to run. Runs all if not specified.
+
+"""
+
 import argparse
 
 from agent import Agent
@@ -39,14 +49,20 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    agent = Agent()
+    agent = Agent(debug=True)
 
-    for question in select_questions_to_run(args.task_id):
-        print("\n" + "-" * 30 + f"Question {question['task_id']}" + "-" * 30 + "\n")
-        content = question["question"]
-        print("Content: " + content)
-        if question["file_name"]:
-            print(f"File: {question['file_name']}\n")
+    # for question in select_questions_to_run(args.task_id):
+    #     print("\n" + "-" * 30 + f"Question {question['task_id']}" + "-" * 30 + "\n")
+    #     content = question["question"]
+    #     print("Content: " + content)
+    #     if question["file_name"]:
+    #         print(f"File: {question['file_name']}\n")
 
-        response = agent(content)
-        print("Response: " + response)
+    #     response = agent(content)
+    #     print("Response: " + response)
+
+    response = agent(
+        "Find if 11111*11111 is odd or even. If it's odd, output 2348592043*0.0934. Otherwise output zero."
+    )
+    # response = agent("What's the current weather in Vancouver?")
+    print("Response: " + response)
