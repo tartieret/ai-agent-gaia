@@ -9,7 +9,7 @@ from langchain_community.tools.playwright.utils import create_async_playwright_b
 
 
 from langchain.tools import BaseTool
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from textwrap import shorten, dedent
 
