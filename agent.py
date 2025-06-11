@@ -14,7 +14,7 @@ from tools import (
     load_text_file,
     web_search_tool,
     run_python,
-    browser_tools,
+    get_browser_tools,
     semantic_tools,
 )
 from debug import PromptLoggingHandler
@@ -90,7 +90,7 @@ class Agent:
             calculator,
             run_python,
             web_search_tool,
-            *browser_tools,
+            *get_browser_tools(),
             # get_text_from_url,
             *semantic_tools,
         ]

@@ -4,7 +4,7 @@ import requests
 import pandas as pd
 
 from agent import Agent
-from hg_api import download_questions, SUBMIT_URL, build_answers_payload
+from hg_api import DATA_FOLDER, download_questions, SUBMIT_URL, build_answers_payload
 
 
 def evaluate_agent(agent, questions_data) -> list[dict]:
@@ -14,12 +14,16 @@ def evaluate_agent(agent, questions_data) -> list[dict]:
     print(f"Running agent on {len(questions_data)} questions...")
     for item in questions_data:
         task_id = item.get("task_id")
+        file_name = item.get("file_name")
+        file_path = None
+        if file_name:
+            file_path = os.path.join(DATA_FOLDER, file_name)
         question_text = item.get("question")
         if not task_id or question_text is None:
             print(f"Skipping item with missing task_id or question: {item}")
             continue
         try:
-            submitted_answer = agent(question_text)
+            submitted_answer = agent(question_text, file_path)
             results_log.append(
                 {
                     "Task ID": task_id,
