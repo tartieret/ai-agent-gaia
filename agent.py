@@ -1,8 +1,6 @@
 import os
 import asyncio
-from typing import Annotated, TypedDict
 
-from langgraph.graph.message import add_messages
 from langchain_core.messages import AnyMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt.chat_agent_executor import AgentState
@@ -10,7 +8,6 @@ from langchain_openai import ChatOpenAI
 
 # from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 from langgraph.prebuilt import create_react_agent
-from langchain_core.prompts import PromptTemplate
 from langchain.tools.render import render_text_description_and_args
 from tools import (
     calculator,
@@ -21,6 +18,7 @@ from tools import (
 )
 from debug import PromptLoggingHandler
 from utils import format_messages
+
 
 DEBUG = True
 
@@ -52,12 +50,13 @@ Never prepend or append explanations to the final answer line.
 
 START NOW!
 ----------------
+
 {messages}
 """
 
 
-class State(TypedDict):
-    messages: Annotated[list[AnyMessage], add_messages]
+class AgentStateWithFile(AgentState):
+    file_path: str | None
 
 
 class Agent:
@@ -94,11 +93,6 @@ class Agent:
             *semantic_tools,
         ]
 
-        # react_prompt_template = PromptTemplate.from_template(BASE_PROMPT)
-        # react_prompt = react_prompt_template.partial(
-        #     tools=render_text_description_and_args(tools),
-        # )
-
         def prompt(state: AgentState, config: RunnableConfig) -> list[AnyMessage]:
             # Build the scratchpad from the messages
             scratchpad = format_messages(state["messages"])
@@ -106,22 +100,37 @@ class Agent:
                 tools=render_text_description_and_args(tools),
                 messages=scratchpad,
             )
-            return system_prompt
 
-        react_prompt_template = PromptTemplate.from_template(BASE_PROMPT)
-        react_prompt = react_prompt_template.partial(
-            tools=render_text_description_and_args(tools),
-        )
+            if state["file_path"]:
+                system_prompt = (
+                    f"The following file was provided: {state['file_path']}\n"
+                    + system_prompt
+                )
+
+            return system_prompt
 
         self.agent = create_react_agent(
             model=chat_model,
             tools=tools,
-            prompt=prompt,  # react_prompt,
+            prompt=prompt,
             debug=self.debug,
+            state_schema=AgentStateWithFile,
         )
 
-    def __call__(self, question: str, filename: str | None = None) -> str:
-        invoke_kwargs = {"messages": [{"role": "user", "content": question}]}
+    def __call__(self, question: str, file_path: str | None = None) -> str:
+        """Run the agent with the given question and optional file path.
+
+        Args:
+            question (str): The question to ask the agent.
+            file_path (str | None, optional): The path to the file to be used by the agent. Defaults to None.
+
+        Returns:
+            str: The response from the agent.
+        """
+        invoke_kwargs = {
+            "messages": [{"role": "user", "content": question}],
+            "file_path": file_path,
+        }
 
         # Get the current event loop or create a new one
         try:
@@ -129,8 +138,6 @@ class Agent:
         except RuntimeError:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-
-        # Run the async function and get the response
         response = loop.run_until_complete(self.agent.ainvoke(invoke_kwargs))
 
         if self.debug:
