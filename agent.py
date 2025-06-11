@@ -11,6 +11,7 @@ from langgraph.prebuilt import create_react_agent
 from langchain.tools.render import render_text_description_and_args
 from tools import (
     calculator,
+    load_text_file,
     web_search_tool,
     run_python,
     browser_tools,
@@ -85,6 +86,7 @@ class Agent:
         )
 
         tools = [
+            load_text_file,
             calculator,
             run_python,
             web_search_tool,
