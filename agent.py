@@ -9,6 +9,7 @@ from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 from langchain.tools.render import render_text_description_and_args
 from tools import (
+    analyze_audio,
     analyze_image,
     calculator,
     load_text_file,
@@ -84,6 +85,7 @@ class Agent:
         )
 
         tools = [
+            analyze_audio,
             analyze_image,
             load_text_file,
             calculator,
