@@ -16,3 +16,4 @@ playwright
 lxml
 requests
 faiss-cpu
+pandas[excel]
