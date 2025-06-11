@@ -17,3 +17,6 @@ lxml
 requests
 faiss-cpu
 pandas[excel]
+youtube-transcript-api
+yt-dlp
+openai
