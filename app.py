@@ -12,7 +12,8 @@ def evaluate_agent(agent, questions_data) -> list[dict]:
     results_log = []
 
     print(f"Running agent on {len(questions_data)} questions...")
-    for item in questions_data:
+    nb_questions = len(questions_data)
+    for i, item in enumerate(questions_data):
         task_id = item.get("task_id")
         file_name = item.get("file_name")
         file_path = None
@@ -22,8 +23,19 @@ def evaluate_agent(agent, questions_data) -> list[dict]:
         if not task_id or question_text is None:
             print(f"Skipping item with missing task_id or question: {item}")
             continue
+
+        print(
+            "\n"
+            + "*" * 30
+            + f"Question {task_id} [{i + 1}/{nb_questions}]"
+            + "*" * 30
+            + "\n"
+        )
         try:
             submitted_answer = agent(question_text, file_path)
+            print("Question: " + question_text)
+            print("Submitted answer: " + submitted_answer)
+
             results_log.append(
                 {
                     "Task ID": task_id,
