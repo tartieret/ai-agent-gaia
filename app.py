@@ -193,3 +193,5 @@ if __name__ == "__main__":
 
     print("Launching Gradio Interface for Basic Agent Evaluation...")
     demo.launch(debug=True, share=False)
+
+    print("Trigger refresh")
