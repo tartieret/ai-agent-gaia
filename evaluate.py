@@ -8,6 +8,7 @@ Where <task_id> is the ID of the task to run. Runs all if not specified.
 
 """
 
+import os
 import argparse
 
 from agent import Agent
@@ -52,13 +53,16 @@ if __name__ == "__main__":
     agent = Agent(debug=True)
 
     for question in select_questions_to_run(args.task_id):
+        file_path = None
         print("\n" + "-" * 30 + f"Question {question['task_id']}" + "-" * 30 + "\n")
         content = question["question"]
+
         print("Content: " + content)
         if question["file_name"]:
-            print(f"File: {question['file_name']}\n")
+            file_path = os.path.join("data", question["file_name"])
+            print(f"File: {file_path}\n")
 
-        response = agent(content)
+        response = agent(content, file_path)
         print("Response: " + response)
 
     # response = agent(

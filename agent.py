@@ -96,16 +96,14 @@ class Agent:
         def prompt(state: AgentState, config: RunnableConfig) -> list[AnyMessage]:
             # Build the scratchpad from the messages
             scratchpad = format_messages(state["messages"])
+
+            if state["file_path"]:
+                scratchpad = f"Provided file: {state['file_path']}\n\n" + scratchpad
+
             system_prompt = BASE_PROMPT.format(
                 tools=render_text_description_and_args(tools),
                 messages=scratchpad,
             )
-
-            if state["file_path"]:
-                system_prompt = (
-                    f"The following file was provided: {state['file_path']}\n"
-                    + system_prompt
-                )
 
             return system_prompt
 
