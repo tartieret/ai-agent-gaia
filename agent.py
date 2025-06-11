@@ -11,7 +11,7 @@ from langchain.tools.render import render_text_description_and_args
 from tools import (
     analyze_audio,
     analyze_image,
-    analyze_video,
+    get_video_transcript,
     calculator,
     load_text_file,
     web_search_tool,
@@ -80,7 +80,7 @@ class Agent:
 
         # Use OpenAI 4o
         chat_model = ChatOpenAI(
-            model_name="gpt-4o",
+            model_name="o3",
             callbacks=self.callbacks,
             api_key=os.getenv("OPENAI_KEY"),
         )
@@ -88,7 +88,7 @@ class Agent:
         tools = [
             analyze_audio,
             analyze_image,
-            analyze_video,
+            get_video_transcript,
             load_text_file,
             calculator,
             run_python,
