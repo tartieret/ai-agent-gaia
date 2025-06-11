@@ -9,6 +9,7 @@ from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 from langchain.tools.render import render_text_description_and_args
 from tools import (
+    analyze_image,
     calculator,
     load_text_file,
     web_search_tool,
@@ -23,30 +24,28 @@ from utils import format_messages
 DEBUG = True
 
 BASE_PROMPT = """
+## Tools
 You are a general AI assistant and have access to the following tools:  
 {tools}
 
-╭─  Interaction protocol (ReAct) ──────────────────────────────────────────╮
-│ When you receive a question, think step‑by‑step and use tools            │
-│ whenever helpful. Always follow *exactly* this scratch‑pad format:       │
-│                                                                          │
-│ Thought: ...   
-│ Action: <tool_name>[<input>]                                             │
-│ Observation: <tool_output>                                               │
-│                                                                          │
-│ … (repeat Thought/Action/Observation as needed) …                         │
-│                                                                          │
-│ Thought: I now know the answer.                                          │
-│ FINAL ANSWER: <single answer here>                                       │
-╰──────────────────────────────────────────────────────────────────────────╯
+## Interaction protocol (ReAct) 
+When you receive a question, think step‑by‑step and use tools whenever helpful. 
+Always follow *exactly* this sequence:
+
+Thought: ...   
+Action: <tool_name>[<input>] 
+Observation: <tool_output> 
+… (repeat Thought/Action/Observation as needed) … 
+
+Thought: I now know the answer. 
+FINAL ANSWER: <single answer here>
+
+After the line that starts with **“FINAL ANSWER:”**, output nothing else than the answer, NO EXPLANATION.
 
 You MUST respect the following answer format rules:
 • If the answer is a **number**, write plain digits (no commas or units) unless the task explicitly asks for a unit or currency sign.  
 • If the answer is a **string**, give as few words as possible, no articles, no abbreviations, spell out digits unless the task says otherwise.  
 • If the answer is a **comma‑separated list**, apply the number/string rules to every element and separate elements only with “, ” (comma + space).
-
-After the line that starts with **“FINAL ANSWER:”**, output nothing else.  
-Never prepend or append explanations to the final answer line.
 
 START NOW!
 ----------------
@@ -85,6 +84,7 @@ class Agent:
         )
 
         tools = [
+            analyze_image,
             load_text_file,
             calculator,
             run_python,
@@ -144,4 +144,13 @@ class Agent:
             print("\n=== ALL MESSAGES ===")
             print(format_messages(response["messages"]))
             print("=====================\n")
-        return response["messages"][-1].content
+        output = response["messages"][-1].content
+
+        # extract the final answer
+        if "FINAL ANSWER:" not in output:
+            return output
+        final_answer = output.split("FINAL ANSWER:")[1].strip()
+        return final_answer
+
+
+# TODO: include a final answer verification node
