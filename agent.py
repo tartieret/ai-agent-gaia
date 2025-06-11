@@ -11,6 +11,7 @@ from langchain.tools.render import render_text_description_and_args
 from tools import (
     analyze_audio,
     analyze_image,
+    analyze_video,
     calculator,
     load_text_file,
     web_search_tool,
@@ -87,6 +88,7 @@ class Agent:
         tools = [
             analyze_audio,
             analyze_image,
+            analyze_video,
             load_text_file,
             calculator,
             run_python,
