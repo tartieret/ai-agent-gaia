@@ -32,8 +32,8 @@ def evaluate_agent(agent, questions_data) -> list[dict]:
             + "\n"
         )
         try:
-            submitted_answer = agent(question_text, file_path)
             print("Question: " + question_text)
+            submitted_answer = agent(question_text, file_path)
             print("Submitted answer: " + submitted_answer)
 
             results_log.append(
