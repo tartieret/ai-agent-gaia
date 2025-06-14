@@ -25,7 +25,10 @@ def get_browser_tools(async_browser=True):
         if tool.name
         in [
             "navigate_browser",
-        ]  # "extract_text"]
+            "previous_webpage",
+            "click_element",
+            "extract_text",
+        ]
     ]
 
     return browser_tools

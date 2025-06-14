@@ -81,7 +81,7 @@ def analyze_image(
     file_path: str | None = None,
     image_url: str | None = None,
 ) -> str:
-    """Analyzes an image from a file or URL using the provided prompt
+    """Ask questions about an image.
 
     Args:
         prompt (str): The question to answer about the image

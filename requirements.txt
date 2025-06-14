@@ -20,3 +20,5 @@ pandas[excel]
 youtube-transcript-api
 yt-dlp
 openai
+
+stockfish

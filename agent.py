@@ -12,6 +12,7 @@ from tools import (
     analyze_audio,
     analyze_image,
     get_video_transcript,
+    chess,
     calculator,
     load_text_file,
     web_search_tool,
@@ -81,6 +82,7 @@ class Agent:
         # Use OpenAI 4o
         chat_model = ChatOpenAI(
             model_name="o3",
+            # model_name="o4-mini",
             callbacks=self.callbacks,
             api_key=os.getenv("OPENAI_KEY"),
         )
@@ -88,6 +90,7 @@ class Agent:
         tools = [
             analyze_audio,
             analyze_image,
+            chess,
             get_video_transcript,
             load_text_file,
             calculator,

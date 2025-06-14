@@ -31,6 +31,9 @@ def run_python(code: str | None = None, file_path: str | None = None) -> str:
 
     If you need to see the output of a value, you should print it out with `print(...)`.
 
+    The following packages are available:
+    - pandas
+
     Args:
         code (str | None, optional): The Python code to execute. Defaults to None.
         file_path (str | None, optional): The path to the Python file to execute. Defaults to None.
@@ -53,6 +56,29 @@ def run_python(code: str | None = None, file_path: str | None = None) -> str:
     except Exception as e:
         logger.error("run_python failed with error: %s", e)
         return f"The code failed to execute: {str(e)}"
+
+
+# -----------------------------------------
+# Chess tool
+
+
+@tool
+def chess(fen: str, depth: int = 20) -> str:
+    """Find the best move in a chess game
+
+    Args:
+        fen (str): The current position of the chessboard
+        depth (int, optional): The depth of the search. Defaults to 20.
+
+    Returns:
+        str: The best move
+
+    """
+    import stockfish
+
+    stockfish = stockfish.Stockfish()
+    stockfish.set_position(fen)
+    return stockfish.get_best_move()
 
 
 # -----------------------------------------
