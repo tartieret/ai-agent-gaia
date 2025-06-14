@@ -2,7 +2,6 @@ gradio[oauth]
 requests
 
 langchain
-langchain-huggingface
 langchain-openai
 langchain-community
 langgraph
@@ -22,3 +21,4 @@ yt-dlp
 openai
 
 stockfish
+pint==0.24.4

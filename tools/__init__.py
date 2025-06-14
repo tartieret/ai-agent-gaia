@@ -1,5 +1,5 @@
 from .browser import get_browser_tools
-from .misc import run_python, calculator, chess, load_text_file
+from .misc import run_python, calculator, chess, load_text_file, convert_unit
 from .search import web_search_tool
 from .semantic import semantic_tools
 from .images import analyze_image
@@ -17,4 +17,5 @@ __all__ = [
     "analyze_audio",
     "get_video_transcript",
     "get_browser_tools",
+    "convert_unit",
 ]

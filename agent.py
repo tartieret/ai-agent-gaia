@@ -5,13 +5,13 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt.chat_agent_executor import AgentState
 from langchain_openai import ChatOpenAI
 
-# from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 from langgraph.prebuilt import create_react_agent
 from langchain.tools.render import render_text_description_and_args
 from tools import (
     analyze_audio,
     analyze_image,
     get_video_transcript,
+    convert_unit,
     chess,
     calculator,
     load_text_file,
@@ -69,16 +69,6 @@ class Agent:
         if self.debug:
             self.callbacks = [PromptLoggingHandler()]
 
-        # llm = HuggingFaceEndpoint(
-        #     # repo_id="Qwen/Qwen2.5-Coder-32B-Instruct",
-        #     repo_id="deepseek-ai/deepseek-coder-33b",
-        #     # repo_id="mistralai/Mistral-7B-Instruct-v0.2",
-        #     huggingfacehub_api_token=os.getenv("HF_TOKEN"),
-        #     callbacks=self.callbacks,
-        # )
-        # # Attach callbacks directly to the LLM
-        # chat_model = ChatHuggingFace(llm=llm)
-
         # Use OpenAI 4o
         chat_model = ChatOpenAI(
             model_name="o3",
@@ -91,13 +81,13 @@ class Agent:
             analyze_audio,
             analyze_image,
             chess,
+            convert_unit,
             get_video_transcript,
             load_text_file,
             calculator,
             run_python,
             web_search_tool,
             *get_browser_tools(async_browser=False),
-            # get_text_from_url,
             *semantic_tools,
         ]
 

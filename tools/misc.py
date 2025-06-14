@@ -1,6 +1,8 @@
 import ast
 import logging
 
+import stockfish
+import pint
 from langchain_core.tools import tool
 from langchain_experimental.utilities import PythonREPL
 
@@ -74,11 +76,30 @@ def chess(fen: str, depth: int = 20) -> str:
         str: The best move
 
     """
-    import stockfish
+    engine = stockfish.Stockfish(depth=depth)
+    engine.set_position(fen)
+    return engine.get_best_move()
 
-    stockfish = stockfish.Stockfish()
-    stockfish.set_position(fen)
-    return stockfish.get_best_move()
+
+# -----------------------------------------
+# Unit conversion
+
+
+@tool
+def convert_unit(value: float, from_unit: str, to_unit: str) -> float:
+    """
+    Convert a value from one unit to another.
+
+    Args:
+        value (float): The value to convert.
+        from_unit (str): The unit to convert from.
+        to_unit (str): The unit to convert to.
+
+    Returns:
+        float: The converted value.
+    """
+    ureg = pint.UnitRegistry()
+    return ureg.convert(value, from_unit, to_unit)
 
 
 # -----------------------------------------
@@ -126,4 +147,14 @@ def calculator(expression: str) -> float:
 
 if __name__ == "__main__":
     expr = input("Enter a simple expression (e.g., 2 + 3 * 4): ")
-    print("Result:", calculator(expr))
+    print("Result:", calculator.invoke({"expression": expr}))
+
+    unit_from = input("Enter a unit to convert from (e.g., m, km, cm): ")
+    unit_to = input("Enter a unit to convert to (e.g., m, km, cm): ")
+    value = float(input("Enter a value to convert: "))
+    print(
+        "Result:",
+        convert_unit.invoke(
+            {"value": value, "from_unit": unit_from, "to_unit": unit_to}
+        ),
+    )
