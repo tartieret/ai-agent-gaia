@@ -26,7 +26,9 @@ from utils import format_messages
 
 DEBUG = True
 
-BASE_PROMPT = """
+BASE_PROMPT_OLD = """
+You are an expert multi-tool reasoning agent.
+
 ## Tools
 You are a general AI assistant and have access to the following tools:  
 {tools}
@@ -52,6 +54,25 @@ You MUST respect the following answer format rules:
 
 START NOW!
 ----------------
+
+{messages}
+"""
+
+BASE_PROMPT = """
+You are an expert multi-tool reasoning agent.
+
+# Tooling
+You have access to the following tools:
+{tools}
+
+# FINAL ANSWER formatting (hard requirement)
+• If a **number**, use digits only – **no commas, no units** ($, %, etc.) unless the question explicitly asks for them.  
+• If a **string**, use as few words as possible, **no articles** (“a”, “the”) and **no abbreviations** (write “Saint Petersburg”, not “St Petersburg”).  
+• If a **comma-separated list**, apply the above rules to each element and separate with a comma + space.  
+• Never wrap your answer in quotes or backticks.  
+• The autograder compares your output verbatim; any extra characters will cause failure.
+
+# START NOW!
 
 {messages}
 """
