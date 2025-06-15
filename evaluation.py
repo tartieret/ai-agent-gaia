@@ -45,7 +45,7 @@ def evaluate_agent(
 
     for question in select_questions_to_run(dataset, level, task_id):
         print("\n" + "-" * 30 + f"Question {question.task_id}" + "-" * 30 + "\n")
-
+        print("Level: ", question.level)
         print("Content: " + question.question)
         if question.file_path:
             print(f"File: {question.file_path}\n")

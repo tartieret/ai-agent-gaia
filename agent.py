@@ -21,7 +21,6 @@ from tools import (
     get_browser_tools,
     semantic_tools,
 )
-from debug import PromptLoggingHandler
 from utils import format_messages
 
 
@@ -99,8 +98,8 @@ class Agent:
         self.debug = debug
         # Add callbacks to the LLM if debug is enabled
         self.callbacks = None
-        if self.debug:
-            self.callbacks = [PromptLoggingHandler()]
+        # if self.debug:
+        #     self.callbacks = [PromptLoggingHandler()]
 
         # Use OpenAI 4o
         chat_model = ChatOpenAI(

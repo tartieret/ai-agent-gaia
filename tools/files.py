@@ -13,6 +13,7 @@ import markdownify
 import pdfplumber
 import mammoth
 import pptx
+import xml.etree.ElementTree as ET
 
 logger = logging.getLogger(__name__)
 
@@ -231,6 +232,65 @@ class PptxConverter(HtmlConverter):
         return False
 
 
+class XmlConverter(DocumentConverter):
+    extensions: list[str] = ["xml"]
+
+    def convert(self, local_path, **kwargs) -> None | DocumentConverterResult:
+        if not self.validate_extension(local_path):
+            return None
+
+        xml_string = ""
+        with open(local_path) as fh:
+            xml_string = fh.read()
+
+        def extract_table_from_html_like(xml_root):
+            table = xml_root.find(".//table")
+            if table is None:
+                raise ValueError("No table found in the XML")
+
+            headers = [th.text for th in table.find("thead").findall("th")]
+            rows = [
+                [td.text for td in tr.findall("td")]
+                for tr in table.find("tbody").findall("tr")
+            ]
+
+            # Create markdown table
+            markdown = "| " + " | ".join(headers) + " |\n"
+            markdown += "| " + " | ".join(["---"] * len(headers)) + " |\n"
+            for row in rows:
+                markdown += "| " + " | ".join(row) + " |\n"
+
+        def extract_table_from_wordml(xml_root, namespaces):
+            # Parse the XML content
+            root = xml_root
+            namespace = {"w": "http://schemas.microsoft.com/office/word/2003/wordml"}
+
+            # Extract text content
+            body = root.find("w:body", namespace)
+            paragraphs = body.findall(".//w:p", namespace)
+            text_content = []
+            for para in paragraphs:
+                texts = para.findall(".//w:t", namespace)
+                for text in texts:
+                    text_content.append(text.text)
+
+            return "\n".join(text_content)
+
+        # Parse the XML string
+        root = ET.fromstring(xml_string)
+        namespaces = {"w": "http://schemas.microsoft.com/office/word/2003/wordml"}
+
+        if root.tag.endswith("wordDocument"):
+            markdown = extract_table_from_wordml(root, namespaces)
+        else:
+            markdown = extract_table_from_html_like(root)
+
+        return DocumentConverterResult(
+            title=None,
+            text_content=markdown.strip(),
+        )
+
+
 class DocumentConverterFactory:
     _converters: dict[str, DocumentConverter] = {}
 
@@ -247,6 +307,8 @@ converter_factory.register_converter(HtmlConverter())
 converter_factory.register_converter(PdfConverter())
 converter_factory.register_converter(PlainTextConverter())
 converter_factory.register_converter(DocxConverter())
+converter_factory.register_converter(PptxConverter())
+converter_factory.register_converter(XmlConverter())
 
 
 # Inspired from https://github.com/aymeric-roucher/GAIA/blob/main/scripts/tools/mdconvert.py
@@ -254,7 +316,7 @@ converter_factory.register_converter(DocxConverter())
 def load_file(file_path: str) -> str:
     """Load a file and return its contents.
 
-    Use it for PDF, DOCX, HTML, PPTX, and any text file.
+    Use it for PDF, DOCX, HTML, PPTX, XML and any text file.
 
     Args:
         file_path (str): The path to the file.
@@ -269,4 +331,6 @@ def load_file(file_path: str) -> str:
         if result:
             return str(result)
 
-    return "This file type is not supported, use another tool."
+    # fallback to returning the content of the file
+    with open(file_path) as f:
+        return f.read()
