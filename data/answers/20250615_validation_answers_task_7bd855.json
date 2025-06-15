@@ -1,0 +1,14 @@
+[
+    {
+        "task_id": "7bd855d8-463d-4ed5-93ca-5fe35145f733",
+        "question": "The attached Excel file contains the sales of menu items for a local fast-food chain. What were the total sales that the chain made from food (not including drinks)? Express your answer in USD with two decimal places.",
+        "file_path": "data/validation/7bd855d8-463d-4ed5-93ca-5fe35145f733.xlsx",
+        "level": 1,
+        "submitted_answer": "$89706.00",
+        "expected_answer": "89706.00",
+        "score": 1,
+        "duration_s": 27.119415998458862,
+        "tools": [],
+        "number_of_steps": 0
+    }
+]

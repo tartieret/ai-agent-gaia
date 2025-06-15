@@ -96,7 +96,8 @@ def evaluate_agent(
 
         start_time = time.time()
         try:
-            response = agent(question.question, question.file_path)
+            agent_response = agent(question.question, question.file_path)
+            response = agent_response.final_answer
         except Exception as e:
             print(f"Error: {str(e)}")
             response = "Error: " + str(e)
@@ -106,6 +107,8 @@ def evaluate_agent(
         print("Expected: " + question.expected_answer)
         print(f"Score: {score}")
         print(f"Duration: {duration_s:.2f} seconds")
+        print(f"Tools: {agent_response.tools_used}")
+        print(f"Number of steps: {agent_response.num_steps}")
 
         answers.append(
             Answer(
@@ -117,8 +120,8 @@ def evaluate_agent(
                 expected_answer=question.expected_answer,
                 score=score,
                 duration_s=duration_s,
-                tools=[],
-                number_of_steps=0,
+                tools=agent_response.tools_used,
+                number_of_steps=agent_response.num_steps,
             )
         )
 

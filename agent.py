@@ -1,5 +1,6 @@
 import os
 import asyncio
+import dataclasses
 
 from langchain_core.messages import AnyMessage
 from langchain_core.runnables import RunnableConfig
@@ -95,6 +96,13 @@ class AgentStateWithFile(AgentState):
     file_path: str | None
 
 
+@dataclasses.dataclass
+class AgentResponse:
+    final_answer: str
+    num_steps: int
+    tools_used: list[str]
+
+
 class Agent:
     def __init__(self, debug=False):
         self.debug = debug
@@ -185,9 +193,29 @@ class Agent:
 
         # extract the final answer
         if "FINAL ANSWER:" not in output:
-            return output
-        final_answer = output.split("FINAL ANSWER:")[1].strip()
-        return final_answer
+            final_answer = output
+        else:
+            final_answer = output.split("FINAL ANSWER:")[1].strip()
+
+        # Count all steps (Thought, Action, Observation)
+
+        step_count = 0
+        tool_steps = []
+        for msg in response["messages"]:
+            if msg["role"] == "assistant":
+                step_count += 1
+            if msg.tool_calls:
+                for tool_call in msg.tool_calls:
+                    tool_name = tool_call.get("name", "")
+                    kwargs = tool_call.get("args", {})
+                    pretty_kwargs = ",".join([f"{k}={v}" for k, v in kwargs.items()])
+                    tool_steps.append(f"<{tool_name}>[{pretty_kwargs}]")
+
+        return AgentResponse(
+            final_answer=final_answer,
+            num_steps=step_count,
+            tools_used=tool_steps,
+        )
 
 
 # TODO: include a final answer verification node
