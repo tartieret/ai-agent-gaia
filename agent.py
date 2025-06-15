@@ -77,8 +77,9 @@ Observation: <tool_output>
 Thought: I now know the answer. 
 FINAL ANSWER: <single answer here>
 
-# FINAL ANSWER formatting (hard requirement)
-• If a **number**, use digits only – **no commas, no units** ($, %, etc.) unless the question explicitly asks for them.  
+# FINAL ANSWER formatting
+Before ending, ALWAYS check that the final answer follow these formatting instructions:
+• If a **number**, use digits only – **no commas, no units** ($, %, etc.) unless the question EXPLICITLY asks for them.  
 • If a **string**, use as few words as possible, **no articles** (“a”, “the”) and **no abbreviations** (write “Saint Petersburg”, not “St Petersburg”).  
 • If a **comma-separated list**, apply the above rules to each element and separate with a comma + space.  
 • Never wrap your answer in quotes or backticks.  
