@@ -9,20 +9,6 @@ from langchain_experimental.utilities import PythonREPL
 logger = logging.getLogger(__name__)
 
 
-@tool
-def load_text_file(file_path: str) -> str:
-    """Load a text file and return its contents.
-
-    Args:
-        file_path (str): The path to the text file.
-
-    Returns:
-        str: The contents of the text file.
-    """
-    with open(file_path) as f:
-        return f.read()
-
-
 # -----------------------------------------
 # Code Execution
 
