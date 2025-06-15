@@ -14,13 +14,13 @@ class Answer:
     task_id: str
     question: str
     file_path: str | None
+    level: int
     submitted_answer: str
     expected_answer: str
     score: int
     duration_s: float
     tools: list[str]
     number_of_steps: int
-    level: int = 1
 
     def pprint(self):
         print(f"Task ID: {self.task_id}")
