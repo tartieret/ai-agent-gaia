@@ -5,6 +5,7 @@ import os
 import time
 
 from agent import Agent
+from scorer import question_scorer
 from dataset import select_questions_to_run
 
 
@@ -19,12 +20,6 @@ class Answer:
     duration_s: float
     tools: list[str]
     number_of_steps: int
-
-
-def check_answer(submitted_answer: str, expected_answer: str) -> int:
-    return (
-        1 if submitted_answer.lower().strip() == expected_answer.lower().strip() else 0
-    )
 
 
 def evaluate_agent(
@@ -58,7 +53,7 @@ def evaluate_agent(
         start_time = time.time()
         response = agent(question.question, question.file_path)
         duration_s = time.time() - start_time
-        score = check_answer(response, question.expected_answer)
+        score = int(question_scorer(response, question.expected_answer))
         print("Response: " + response)
         print("Expected: " + question.expected_answer)
         print(f"Score: {score}")
