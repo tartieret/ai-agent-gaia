@@ -42,6 +42,7 @@ def evaluate_agent(
     agent = Agent(debug=debug)
     answers = []
     total_score: int = 0
+    stats_per_level = {i: {"nb_questions": 0, "total_score": 0} for i in range(1, 4)}
 
     for question in select_questions_to_run(dataset, level, task_id):
         print("\n" + "-" * 30 + f"Question {question.task_id}" + "-" * 30 + "\n")
@@ -51,7 +52,11 @@ def evaluate_agent(
             print(f"File: {question.file_path}\n")
 
         start_time = time.time()
-        response = agent(question.question, question.file_path)
+        try:
+            response = agent(question.question, question.file_path)
+        except Exception as e:
+            print(f"Error: {str(e)}")
+            response = "Error: " + str(e)
         duration_s = time.time() - start_time
         score = int(question_scorer(response, question.expected_answer))
         print("Response: " + response)
@@ -73,6 +78,8 @@ def evaluate_agent(
             )
         )
         total_score += score
+        stats_per_level[question.level]["nb_questions"] += 1
+        stats_per_level[question.level]["total_score"] += score
 
     # Calculate total score
     print("\n" + "-" * 30 + "Total Score" + "-" * 30 + "\n")
@@ -85,6 +92,15 @@ def evaluate_agent(
     print(
         f"Total score: {total_score}/{len(answers)} ({total_score / len(answers) * 100:.2f}%)"
     )
+
+    # Print stats per level
+    for level, stats in stats_per_level.items():
+        if stats["nb_questions"] == 0:
+            continue
+        print(f"\nLevel {level}:")
+        print(f"  Number of questions: {stats['nb_questions']}")
+        print(f"  Total score: {stats['total_score']}")
+        print(f"  Average score: {stats['total_score'] / stats['nb_questions']:.2f}")
 
     return answers
 
