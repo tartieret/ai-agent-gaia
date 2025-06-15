@@ -34,10 +34,18 @@ Follow these steps to set up your environment and install the required dependenc
 
 3. **Download the GAIA dataset from HuggingFace**:
 
-   ```bash
-   wget https://github.com/Anthropic/GAIA/releases/download/v0.1.0/gaia_dataset_v0.1.0.tar.gz
-   tar -xvf gaia_dataset_v0.1.0.tar.gz
-   ```
+    1. Manually Download the dataset from HuggingFace: <https://huggingface.co/datasets/gaia-benchmark/GAIA/tree/main/2023>
+    (you will need to clone the repo)
+    2. Copy the content of the datasets to `data/validation` and`data/test`
+
+4. **Configure API keys:**
+
+   - Create a `.env` file in the root directory with the following variables:
+
+     ```bash
+     OPENAI_API_KEY=<your_openai_api_key>
+     TAVILY_API_KEY=<your_tavily_api_key>
+     ```
 
 ## How to Run
 
@@ -68,14 +76,11 @@ By default, results are saved in `data/answers`.
 
 ## Results
 
-Below is a template table to record the results on each dataset and each level. Please fill in the values manually after running your experiments.
+Here are the results obtained with the agent:
 
-| Dataset     | Level 1 | Level 2 | Level 3 |
-|-------------|---------|---------|---------|
-| Validation  |         |         |         |
-| Test        |         |         |         |
+| Dataset     | Level 1 | Level 2 | Level 3 | Average |
+|-------------|---------|---------|---------|---------|
+| Validation  | 64%   |   53%  | 38%     | 54.55%  |
+| Test        |  TBC    |   TBC    |  TBC    |   TBC    |
 
 ---
-
-- For any issues, please ensure you have activated the virtual environment and installed all dependencies.
-- For package requirements, see `packages.txt` and `requirements.txt`.
