@@ -20,6 +20,51 @@ class Answer:
     duration_s: float
     tools: list[str]
     number_of_steps: int
+    level: int = 1
+
+    def pprint(self):
+        print(f"Task ID: {self.task_id}")
+        print(f"Question: {self.question}")
+        if self.file_path:
+            print(f"File: {self.file_path}")
+        print(f"Submitted answer: {self.submitted_answer}")
+        print(f"Expected answer: {self.expected_answer}")
+        print(f"Score: {self.score}")
+        print(f"Duration: {self.duration_s:.2f} seconds")
+        print(f"Tools: {self.tools}")
+        print(f"Number of steps: {self.number_of_steps}")
+        print(f"Level: {self.level}")
+
+
+def print_scores(answers: list[Answer]) -> None:
+    """Show the total score, and the breakdown per level.
+
+    Args:
+        answers (list[Answer]): List of answers.
+
+    """
+    total_score: int = 0
+    stats_per_level = {i: {"nb_questions": 0, "total_score": 0} for i in range(1, 4)}
+
+    for answer in answers:
+        total_score += answer.score
+        stats_per_level[answer.level]["nb_questions"] += 1
+        stats_per_level[answer.level]["total_score"] += answer.score
+
+    print(
+        f"Total score: {total_score}/{len(answers)} ({total_score / len(answers) * 100:.2f}%)"
+    )
+
+    # Print stats per level
+    for level, stats in stats_per_level.items():
+        if stats["nb_questions"] == 0:
+            continue
+        print(f"\nLevel {level}:")
+        print(f"  Number of questions: {stats['nb_questions']}")
+        print(f"  Total score: {stats['total_score']}")
+        print(
+            f"  Average score: {100 * stats['total_score'] / stats['nb_questions']:.2f}%"
+        )
 
 
 def evaluate_agent(
@@ -41,8 +86,6 @@ def evaluate_agent(
     """
     agent = Agent(debug=debug)
     answers = []
-    total_score: int = 0
-    stats_per_level = {i: {"nb_questions": 0, "total_score": 0} for i in range(1, 4)}
 
     for question in select_questions_to_run(dataset, level, task_id):
         print("\n" + "-" * 30 + f"Question {question.task_id}" + "-" * 30 + "\n")
@@ -68,6 +111,7 @@ def evaluate_agent(
             Answer(
                 task_id=question.task_id,
                 question=question.question,
+                level=question.level,
                 file_path=question.file_path,
                 submitted_answer=response,
                 expected_answer=question.expected_answer,
@@ -77,32 +121,16 @@ def evaluate_agent(
                 number_of_steps=0,
             )
         )
-        total_score += score
-        stats_per_level[question.level]["nb_questions"] += 1
-        stats_per_level[question.level]["total_score"] += score
 
     # Calculate total score
-    print("\n" + "-" * 30 + "Total Score" + "-" * 30 + "\n")
+    print("\n" + "-" * 30 + "Results" + "-" * 30 + "\n")
     print("Datasets:")
     print(f"  Dataset: {dataset}")
     if level:
         print(f"  Level: {level}")
     else:
         print("  Level: All")
-    print(
-        f"Total score: {total_score}/{len(answers)} ({total_score / len(answers) * 100:.2f}%)"
-    )
-
-    # Print stats per level
-    for level, stats in stats_per_level.items():
-        if stats["nb_questions"] == 0:
-            continue
-        print(f"\nLevel {level}:")
-        print(f"  Number of questions: {stats['nb_questions']}")
-        print(f"  Total score: {stats['total_score']}")
-        print(
-            f"  Average score: {100 * stats['total_score'] / stats['nb_questions']:.2f}%"
-        )
+    print_scores(answers)
 
     return answers
 
@@ -121,7 +149,8 @@ def save_answers(
         level (int | None, optional): Level of the questions to run. Defaults to None.
         task_id (str | None, optional): ID of the task to run. Defaults to None.
     """
-    base_filename = f"{dataset}_answers"
+    date = time.strftime("%Y%m%d")
+    base_filename = f"{date}_{dataset}_answers"
     if level:
         base_filename += f"_level_{level}"
     if task_id:

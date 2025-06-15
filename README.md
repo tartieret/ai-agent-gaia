@@ -80,7 +80,7 @@ Here are the results obtained with the agent:
 
 | Dataset     | Level 1 | Level 2 | Level 3 | Average |
 |-------------|---------|---------|---------|---------|
-| Validation  | 64%   |   53%  | 38%     | 54.55%  |
+| Validation  | 64.2%   |   53.5%  | 38.5%     | 54.55%  |
 | Test        |  TBC    |   TBC    |  TBC    |   TBC    |
 
 ---
