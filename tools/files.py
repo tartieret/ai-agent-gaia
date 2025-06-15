@@ -90,7 +90,18 @@ class HtmlConverter(DocumentConverter):
 class PlainTextConverter(DocumentConverter):
     """Anything with content type text/plain"""
 
-    extensions: list[str] = ["txt"]
+    extensions: list[str] = [
+        "txt",
+        "py",
+        "js",
+        "css",
+        "json",
+        "md",
+        "go",
+        "rb",
+        "rs",
+        "rsx",
+    ]
 
     def convert(self, local_path, **kwargs) -> Union[None, DocumentConverterResult]:
         if not self.validate_extension(local_path):
@@ -367,25 +378,27 @@ def load_file_or_url(file_path_or_url: str) -> str:
     Returns:
         str: The contents of the file.
     """
+    content = ""
+    file_path = file_path_or_url
     # if URL, download first as a temporary file
     if file_path_or_url.startswith("http"):
         file_path = save_resource(file_path_or_url)
-        try:
-            return load_file_or_url(file_path)
-        finally:
-            os.remove(file_path)
+        content += f"URL: {file_path_or_url}\n"
+        content += f"Downloaded to: {file_path}\n"
 
-    file_path = file_path_or_url
     extension = file_path.split(".")[-1].lower()
     converter = converter_factory.get_converter(extension)
     if converter:
         result = converter.convert(file_path)
         if result:
-            return str(result)
+            content += str(result)
+            # limit content to 5000 characters
+            if len(content) > 5000:
+                return content[:5000] + "...TRUNCATED"
+            return content
 
-    # fallback to returning the content of the file
-    with open(file_path) as f:
-        return f.read()
+    print(f"ERROR: Unable to load file or URL: Unknown format. Extension: {extension}")
+    return "Unable to load file or URL: Unknown format"
 
 
 @tool
@@ -405,6 +418,3 @@ def unzip(file_path: str) -> list[str]:
         filepaths = [os.path.join("data/zip", f) for f in zip_file.namelist()]
         print("Extracted files:", filepaths)
         return filepaths
-
-
-print(load_file_or_url.invoke({"file_path_or_url": "https://arxiv.org/pdf/2207.01510"}))

@@ -21,6 +21,7 @@ def run_python(code: str | None = None, file_path: str | None = None) -> str:
 
     The following packages are available:
     - pandas
+    - pdfplumber (for PDF parsing)
 
     Args:
         code (str | None, optional): The Python code to execute. Defaults to None.

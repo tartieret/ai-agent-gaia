@@ -1,9 +1,8 @@
-import requests
-from bs4 import BeautifulSoup
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.tools import BaseTool
 from textwrap import shorten, dedent
+from .files import load_file_or_url
 
 # -----------------------------------------
 # Semantic search
@@ -50,31 +49,15 @@ class SemanticSectionRetrieverFromUrl(SemanticSectionRetrieverFromText):
         """
         Given (url, query, k=3) return up to k snippets of page text that are
         semantically closest to the query. Useful when keywords don’t match exactly.
+
+        This tool can deal with PDF, DOCX, HTML, PPTX, XML and any text resource.
         """
     )
 
-    def get_raw_url(aelf, url: str) -> str:
-        """Retrieve the raw content of a URL.
-
-        Args:
-            url (str): The URL to retrieve the content from.
-        Returns:
-            str: The raw content (HTML or JSON) of the URL.
-        """
-
-        try:
-            response = requests.get(url)
-            return response.text
-        except requests.exceptions.RequestException as e:
-            print(f"Error fetching URL {url}: {e}")
-            raise e
-
     def _run(self, url: str, query: str, k: int = 3):
         try:
-            html_text = self.get_raw_url(url)
-            soup = BeautifulSoup(html_text, "lxml")
-            raw_text = soup.get_text(" ", strip=True)
-            return self._retriever(raw_text, query, k)
+            markdown_text = load_file_or_url(url)
+            return self._retriever(markdown_text, query, k)
         except Exception as e:
             return [f"Error processing URL {url}: {e}"]
 

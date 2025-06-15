@@ -10,7 +10,7 @@ Where <task_id> is the ID of the task to run. Runs all if not specified.
 
 import argparse
 
-from evaluation import evaluate_agent, save_answers
+from agent import Agent
 
 
 if __name__ == "__main__":
@@ -44,6 +44,11 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    answers = evaluate_agent(args.dataset, args.level, args.task_id, debug=True)
-    if not args.nosave:
-        save_answers(answers, args.dataset, args.level, args.task_id)
+    # answers = evaluate_agent(args.dataset, args.level, args.task_id, debug=True)
+    # if not args.nosave:
+    #     save_answers(answers, args.dataset, args.level, args.task_id)
+    from agent import Agent
+
+    question = "I read a paper about multiwavelength observations of fast radio bursts back in March 2021 on Arxiv, and it had a fascinating diagram of an X-ray time profile. There was a similar burst-1 diagram in another paper from one of the same authors about fast radio bursts back in July 2020, but I can't recall what the difference in seconds in the measured time span was. How many more seconds did one measure than the other? Just give the number."
+    agent = Agent(debug=True)
+    print(agent(question))
