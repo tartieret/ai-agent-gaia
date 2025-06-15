@@ -10,7 +10,7 @@ import logging
 from langchain_core.tools import tool
 from bs4 import BeautifulSoup
 import markdownify
-import pdfminer
+import pdfplumber
 import mammoth
 import pptx
 
@@ -44,7 +44,7 @@ class DocumentConverter:
 class HtmlConverter(DocumentConverter):
     """Anything with content type text/html"""
 
-    extensions: list[str] = [".html", ".htm"]
+    extensions: list[str] = ["html", "htm"]
 
     def convert(self, local_path, **kwargs) -> Union[None, DocumentConverterResult]:
         if not self.validate_extension(local_path):
@@ -83,7 +83,7 @@ class HtmlConverter(DocumentConverter):
 class PlainTextConverter(DocumentConverter):
     """Anything with content type text/plain"""
 
-    extensions: list[str] = [".txt"]
+    extensions: list[str] = ["txt"]
 
     def convert(self, local_path, **kwargs) -> Union[None, DocumentConverterResult]:
         if not self.validate_extension(local_path):
@@ -100,20 +100,28 @@ class PlainTextConverter(DocumentConverter):
 
 
 class PdfConverter(DocumentConverter):
-    extensions: list[str] = [".pdf"]
+    extensions: list[str] = ["pdf"]
 
     def convert(self, local_path, **kwargs) -> Union[None, DocumentConverterResult]:
         if not self.validate_extension(local_path):
             return None
 
+        all_text = ""
+
+        with pdfplumber.open(local_path) as pdf:
+            for i, page in enumerate(pdf.pages):
+                text = page.extract_text()
+                if text:
+                    all_text += f"\n\n--- Page {i + 1} ---\n\n{text}"
+
         return DocumentConverterResult(
             title=None,
-            text_content=pdfminer.high_level.extract_text(local_path),
+            text_content=markdownify.markdownify(all_text).strip(),
         )
 
 
 class DocxConverter(HtmlConverter):
-    extensions: list[str] = [".docx"]
+    extensions: list[str] = ["docx"]
 
     def convert(self, local_path, **kwargs) -> Union[None, DocumentConverterResult]:
         if not self.validate_extension(local_path):
@@ -129,7 +137,7 @@ class DocxConverter(HtmlConverter):
 
 
 class PptxConverter(HtmlConverter):
-    extensions: list[str] = [".pptx"]
+    extensions: list[str] = ["pptx"]
 
     def convert(self, local_path, **kwargs) -> Union[None, DocumentConverterResult]:
         if not self.validate_extension(local_path):
@@ -261,6 +269,4 @@ def load_file(file_path: str) -> str:
         if result:
             return str(result)
 
-    # fallback to returning the content of the file
-    with open(file_path) as f:
-        return f.read()
+    return "This file type is not supported, use another tool."

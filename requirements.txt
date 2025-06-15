@@ -23,5 +23,6 @@ openai
 stockfish
 pint==0.24.4
 markdownify
-pdfminer
+pdfplumber
 python-pptx==1.0.2
+mammoth

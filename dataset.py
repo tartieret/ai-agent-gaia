@@ -14,7 +14,7 @@ class Question:
     level: int
 
 
-DATA_FOLDER = os.path.join(os.path.dirname(__file__), "data")
+DATA_FOLDER = "data"
 
 
 def load_questions(
