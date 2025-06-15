@@ -9,7 +9,7 @@ from typing import Literal
 class Question:
     task_id: str
     question: str
-    file_name: str | None
+    file_path: str | None
     expected_answer: str
     level: int
 
@@ -28,7 +28,7 @@ def load_questions(
                 Question(
                     task_id=item["task_id"],
                     question=item["Question"],
-                    file_name=item["file_name"],
+                    file_path=os.path.join(DATA_FOLDER, dataset, item["file_name"]),
                     expected_answer=item["Final answer"],
                     level=item["Level"],
                 )
