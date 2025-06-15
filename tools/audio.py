@@ -3,6 +3,8 @@ import os
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import tool
 
+import settings
+
 
 @tool
 def analyze_audio(prompt: str, audio_file_path: str) -> str:
@@ -28,7 +30,7 @@ def analyze_audio(prompt: str, audio_file_path: str) -> str:
     llm = ChatOpenAI(
         model="gpt-4o-audio-preview",
         temperature=0,
-        api_key=os.getenv("OPENAI_API_KEY"),
+        api_key=settings.OPENAI_API_KEY,
     )
 
     output_message = llm.invoke(

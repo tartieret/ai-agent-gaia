@@ -100,7 +100,9 @@ def evaluate_agent(
         print(f"\nLevel {level}:")
         print(f"  Number of questions: {stats['nb_questions']}")
         print(f"  Total score: {stats['total_score']}")
-        print(f"  Average score: {stats['total_score'] / stats['nb_questions']:.2f}")
+        print(
+            f"  Average score: {100 * stats['total_score'] / stats['nb_questions']:.2f}%"
+        )
 
     return answers
 

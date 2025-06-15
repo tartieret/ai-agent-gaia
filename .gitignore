@@ -176,4 +176,7 @@ pyrightconfig.json
 # End of https://www.toptal.com/developers/gitignore/api/python
 
 # Data files
-/data
+data/zip/**
+data/validation/**
+data/test/**
+data/zip/**

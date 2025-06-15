@@ -1,0 +1,13 @@
+[
+    {
+        "task_id": "70e0a9c6-24bf-48ed-afa1-f0d0eaaa0209",
+        "question": "As of July 2023, what is the fourth letter of the administrative district Szyman\u00f3wek lies in?",
+        "file_path": "data/test/",
+        "submitted_answer": "z",
+        "expected_answer": "?",
+        "score": 0,
+        "duration_s": 37.96622943878174,
+        "tools": [],
+        "number_of_steps": 0
+    }
+]

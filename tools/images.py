@@ -6,6 +6,8 @@ import base64
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import tool
 
+import settings
+
 
 def download_image(image_url: str) -> Image:
     response = requests.get(image_url)
@@ -95,7 +97,7 @@ def analyze_image(
         llm = ChatOpenAI(
             model="gpt-4o",
             temperature=0,
-            api_key=os.getenv("OPENAI_API_KEY"),
+            api_key=settings.OPENAI_API_KEY,
         )
 
         if file_path:

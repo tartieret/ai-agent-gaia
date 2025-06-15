@@ -16,6 +16,8 @@ from openai import OpenAI
 from openai.types.audio import TranscriptionSegment
 import requests
 
+import settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -74,7 +76,7 @@ def transcribe_video_with_whisper(
     video_path_or_url: str, api_key: Optional[str] = None
 ) -> Optional[str]:
     """Transcribe video using OpenAI Whisper API."""
-    api_key = api_key or os.getenv("OPENAI_API_KEY")
+    api_key = api_key or settings.OPENAI_API_KEY
     if video_path_or_url.startswith("http://") or video_path_or_url.startswith(
         "https://"
     ):
