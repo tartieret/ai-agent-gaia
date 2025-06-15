@@ -1,4 +1,5 @@
 import os
+import asyncio
 
 from langchain_core.messages import AnyMessage
 from langchain_core.runnables import RunnableConfig
@@ -59,11 +60,22 @@ START NOW!
 """
 
 BASE_PROMPT = """
-You are an expert multi-tool reasoning agent.
+You are an expert multi-tool reasoning agent and you have access to the following tool
 
-# Tooling
-You have access to the following tools:
+# Tools
 {tools}
+
+# Interaction protocol (ReAct) 
+When you receive a question, think step‑by‑step and use tools whenever helpful. 
+Always follow *exactly* this sequence:
+
+Thought: ...   
+Action: <tool_name>[<input>] 
+Observation: <tool_output> 
+… (repeat Thought/Action/Observation as needed) … 
+
+Thought: I now know the answer. 
+FINAL ANSWER: <single answer here>
 
 # FINAL ANSWER formatting (hard requirement)
 • If a **number**, use digits only – **no commas, no units** ($, %, etc.) unless the question explicitly asks for them.  
@@ -108,7 +120,7 @@ class Agent:
             calculator,
             run_python,
             web_search_tool,
-            *get_browser_tools(async_browser=False),
+            *get_browser_tools(use_async_browser=True),
             *semantic_tools,
         ]
 
@@ -150,13 +162,12 @@ class Agent:
         }
 
         # Get the current event loop or create a new one
-        # try:
-        #     loop = asyncio.get_event_loop()
-        # except RuntimeError:
-        #     loop = asyncio.new_event_loop()
-        #     asyncio.set_event_loop(loop)
-        # response = loop.run_until_complete(self.agent.ainvoke(invoke_kwargs))
-        response = self.agent.invoke(invoke_kwargs)
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        response = loop.run_until_complete(self.agent.ainvoke(invoke_kwargs))
 
         if self.debug:
             print("\n=== ALL MESSAGES ===")
