@@ -28,7 +28,9 @@ def load_questions(
                 Question(
                     task_id=item["task_id"],
                     question=item["Question"],
-                    file_path=os.path.join(DATA_FOLDER, dataset, item["file_name"]),
+                    file_path=os.path.join(DATA_FOLDER, dataset, item["file_name"])
+                    if item["file_name"]
+                    else None,
                     expected_answer=item["Final answer"],
                     level=item["Level"],
                 )
