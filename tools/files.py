@@ -16,6 +16,10 @@ import os
 import pptx
 import xml.etree.ElementTree as ET
 import zipfile
+import tempfile
+import requests
+import mimetypes
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -313,18 +317,65 @@ converter_factory.register_converter(PptxConverter())
 converter_factory.register_converter(XmlConverter())
 
 
-@tool
-def load_file(file_path: str) -> str:
-    """Load a file and return its contents.
-
-    Use it for PDF, DOCX, HTML, PPTX, XML and any text file.
+def save_resource(url: str) -> str:
+    """Save a resource from a URL to a temporary file.
 
     Args:
-        file_path (str): The path to the file.
+        url (str): The URL of the resource.
+
+    Returns:
+        str: The path to the temporary file.
+    """
+    print("Downloading resource from URL:", url)
+    response = requests.get(url, stream=True)
+    response.raise_for_status()
+
+    # Determine filename from URL path
+    parsed_url = urlparse(url)
+    base_name = os.path.basename(parsed_url.path)
+
+    # Guess extension from Content-Type header
+    content_type = response.headers.get("Content-Type")
+    extension = (
+        mimetypes.guess_extension(content_type.split(";")[0]) if content_type else ""
+    )
+
+    if not extension and "." in base_name:
+        # Fall back to using URL extension
+        extension = os.path.splitext(base_name)[1]
+
+    print("Extension guessed from response:", extension)
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=extension) as tmp_file:
+        # Write content to temporary file
+        for chunk in response.iter_content(chunk_size=8192):
+            tmp_file.write(chunk)
+        tmp_path = tmp_file.name
+        print("File saved to: ", tmp_path)
+        return tmp_path
+
+
+@tool
+def load_file_or_url(file_path_or_url: str) -> str:
+    """Load a file or a URL and return its contents.
+
+    Use it for PDF, DOCX, HTML, PPTX, XML and any text resource.
+
+    Args:
+        file_path_or_url (str): The path to the file or URL.
 
     Returns:
         str: The contents of the file.
     """
+    # if URL, download first as a temporary file
+    if file_path_or_url.startswith("http"):
+        file_path = save_resource(file_path_or_url)
+        try:
+            return load_file_or_url(file_path)
+        finally:
+            os.remove(file_path)
+
+    file_path = file_path_or_url
     extension = file_path.split(".")[-1].lower()
     converter = converter_factory.get_converter(extension)
     if converter:
@@ -354,3 +405,6 @@ def unzip(file_path: str) -> list[str]:
         filepaths = [os.path.join("data/zip", f) for f in zip_file.namelist()]
         print("Extracted files:", filepaths)
         return filepaths
+
+
+print(load_file_or_url.invoke({"file_path_or_url": "https://arxiv.org/pdf/2207.01510"}))
