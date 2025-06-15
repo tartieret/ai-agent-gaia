@@ -1,5 +1,5 @@
 from .browser import get_browser_tools
-from .files import load_file
+from .files import load_file, unzip
 from .misc import run_python, calculator, chess, convert_unit
 from .search import web_search_tool
 from .semantic import semantic_tools
@@ -19,4 +19,5 @@ __all__ = [
     "get_video_transcript",
     "get_browser_tools",
     "convert_unit",
+    "unzip",
 ]

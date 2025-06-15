@@ -20,6 +20,7 @@ from tools import (
     run_python,
     get_browser_tools,
     semantic_tools,
+    unzip,
 )
 from utils import format_messages
 
@@ -121,6 +122,7 @@ class Agent:
             web_search_tool,
             *get_browser_tools(use_async_browser=True),
             *semantic_tools,
+            unzip,
         ]
 
         def prompt(state: AgentState, config: RunnableConfig) -> list[AnyMessage]:
@@ -128,7 +130,13 @@ class Agent:
             scratchpad = format_messages(state["messages"])
 
             if state["file_path"]:
-                scratchpad = f"Provided file: {state['file_path']}\n\n" + scratchpad
+                if state["file_path"].endswith(".zip"):
+                    scratchpad = (
+                        f"Provided zip file: {state['file_path']}\nUse the unzip tool to process it.\n\n"
+                        + scratchpad
+                    )
+                else:
+                    scratchpad = f"Provided file: {state['file_path']}\n\n" + scratchpad
 
             system_prompt = BASE_PROMPT.format(
                 tools=render_text_description_and_args(tools),

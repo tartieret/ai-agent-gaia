@@ -12,8 +12,10 @@ from bs4 import BeautifulSoup
 import markdownify
 import pdfplumber
 import mammoth
+import os
 import pptx
 import xml.etree.ElementTree as ET
+import zipfile
 
 logger = logging.getLogger(__name__)
 
@@ -311,7 +313,6 @@ converter_factory.register_converter(PptxConverter())
 converter_factory.register_converter(XmlConverter())
 
 
-# Inspired from https://github.com/aymeric-roucher/GAIA/blob/main/scripts/tools/mdconvert.py
 @tool
 def load_file(file_path: str) -> str:
     """Load a file and return its contents.
@@ -334,3 +335,22 @@ def load_file(file_path: str) -> str:
     # fallback to returning the content of the file
     with open(file_path) as f:
         return f.read()
+
+
+@tool
+def unzip(file_path: str) -> list[str]:
+    """Unzip a file and return the list of files in the zip.
+    Always use this to process zip files.
+
+    Args:
+        file_path (str): The path to the zip file.
+
+    Returns:
+        list[str]: The list of files in the zip.
+    """
+    with zipfile.ZipFile(file_path) as zip_file:
+        # extract all files from the zip
+        zip_file.extractall("data/zip")
+        filepaths = [os.path.join("data/zip", f) for f in zip_file.namelist()]
+        print("Extracted files:", filepaths)
+        return filepaths
