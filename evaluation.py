@@ -1,6 +1,7 @@
 import dataclasses
 from typing import Literal
 import json
+import os
 import time
 
 from agent import Agent
@@ -21,7 +22,9 @@ class Answer:
 
 
 def check_answer(submitted_answer: str, expected_answer: str) -> int:
-    return 1 if submitted_answer == expected_answer else 0
+    return (
+        1 if submitted_answer.lower().strip() == expected_answer.lower().strip() else 0
+    )
 
 
 def evaluate_agent(
@@ -55,9 +58,11 @@ def evaluate_agent(
         start_time = time.time()
         response = agent(question.question, question.file_path)
         duration_s = time.time() - start_time
-        print("Response: " + response)
-
         score = check_answer(response, question.expected_answer)
+        print("Response: " + response)
+        print("Expected: " + question.expected_answer)
+        print(f"Score: {score}")
+        print(f"Duration: {duration_s:.2f} seconds")
 
         answers.append(
             Answer(
@@ -109,5 +114,7 @@ def save_answers(
     if task_id:
         base_filename += f"_task_{task_id}"
     filename = base_filename + ".json"
-    with open(filename, "w") as f:
+    with open(os.path.join("data", "answers", filename), "w") as f:
         json.dump([dataclasses.asdict(answer) for answer in answers], f, indent=4)
+
+    print(f"\nSaved answers to {filename}")

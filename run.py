@@ -38,11 +38,9 @@ if __name__ == "__main__":
         default=None,
         help="Optional: ID of the task to run. Runs all if not specified.",
     )
-    # optional argument to not save the answers, default to False
+    # optional argument to save the answers, default to True
     parser.add_argument(
-        "--nosave",
-        action="store_false",
-        help="Optional: Do not save the answers to a JSON file.",
+        "--nosave", action="store_true", help="If set, do not save results"
     )
     args = parser.parse_args()
 
